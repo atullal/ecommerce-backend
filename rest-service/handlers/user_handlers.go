@@ -3,7 +3,7 @@ package handlers
 import (
     "net/http"
     "github.com/gin-gonic/gin"
-    pb "user-service/gen" // Replace with the correct import path
+    pb "github.com/atullal/ecommerce-backend/user-service/gen" // Replace with the correct import path
     "rest-service/services"      // Adjust the import path based on your project structure
 )
 
