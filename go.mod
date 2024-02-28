@@ -1,3 +1,3 @@
-module github.com/atullal/ecommerce-backend
+module ecommerce-backend
 
 go 1.22.0

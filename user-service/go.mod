@@ -1,11 +1,11 @@
-module github.com/atullal/ecommerce-backend/user-service
+module user-service
 
 go 1.22.0
 
 require (
+	github.com/atullal/ecommerce-backend-protobuf v0.0.0-20240228073450-7cb4023edb08
 	golang.org/x/crypto v0.20.0
 	google.golang.org/grpc v1.62.0
-	google.golang.org/protobuf v1.32.0
 	gorm.io/driver/postgres v1.5.6
 	gorm.io/gorm v1.25.7
 )
@@ -26,4 +26,5 @@ require (
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240123012728-ef4313101c80 // indirect
+	google.golang.org/protobuf v1.32.0 // indirect
 )

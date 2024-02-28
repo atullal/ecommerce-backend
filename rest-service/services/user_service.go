@@ -2,7 +2,7 @@ package services
 
 import (
     "context"
-    pb "github.com/atullal/ecommerce-backend/user-service/gen" // Replace with the correct import path
+    pb "github.com/atullal/ecommerce-backend-protobuf/user" // Replace with the correct import path
 )
 
 type UserService struct {

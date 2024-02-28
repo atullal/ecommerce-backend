@@ -1,8 +1,9 @@
-module github.com/atullal/ecommerce-backend/rest-service
+module rest-service
 
 go 1.22.0
 
 require (
+	github.com/atullal/ecommerce-backend-protobuf v0.0.0-20240228073450-7cb4023edb08
 	github.com/gin-gonic/gin v1.9.1
 	google.golang.org/grpc v1.62.0
 )

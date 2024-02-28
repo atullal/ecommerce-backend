@@ -7,7 +7,7 @@ import (
     "net"
 
     "google.golang.org/grpc"
-    pb "github.com/atullal/ecommerce-backend/user-service/gen"
+    pb "github.com/atullal/ecommerce-backend-protobuf/user"
     "gorm.io/driver/postgres"
     "gorm.io/gorm"
     "user-service/models"
@@ -15,6 +15,7 @@ import (
     "golang.org/x/crypto/bcrypt"
     "time"
     "math"
+    "utils/jwt/jwt.go"
 )
 
 type server struct {
@@ -57,6 +58,7 @@ func initDB() *gorm.DB {
     if err := db.AutoMigrate(&models.User{}); err != nil {
         log.Fatalf("failed to migrate database: %v", err)
     }
+    fmt.Println("Database connection successful")
     return db
 }
 
@@ -66,14 +68,20 @@ func (s *server) CreateUser(ctx context.Context, in *pb.CreateUserRequest) (*pb.
     if err != nil {
         return nil, err
     }
-
     user := models.User{Username: in.Username, Email: in.Email, Password: string(hashedPassword)}
     result := s.db.Create(&user)
     if result.Error != nil {
+        fmt.Println("Error: ", result.Error)
         return nil, result.Error
     }
 
-    return &pb.UserResponse{Id: fmt.Sprintf("%d", user.ID), Username: user.Username, Email: user.Email}, nil
+    // Generate JWT token
+    token, err := GenerateToken(user.ID)
+    if err != nil {
+        return nil, err
+    }
+
+    return &pb.UserResponse{Id: fmt.Sprintf("%d", user.ID), Username: user.Username, Email: user.Email, Token: token}, nil
 }
 
 
@@ -87,7 +95,13 @@ func (s *server) AuthenticateUser(ctx context.Context, in *pb.AuthenticateUserRe
         return nil, err
     }
 
-    return &pb.UserResponse{Id: fmt.Sprintf("%d", user.ID), Username: user.Username, Email: user.Email}, nil
+    // Generate JWT token
+    token, err := GenerateToken(user.ID)
+    if err != nil {
+        return nil, err
+    }
+
+    return &pb.UserResponse{Id: fmt.Sprintf("%d", user.ID), Username: user.Username, Email: user.Email, Token: token}, nil
 }
 
 
@@ -99,7 +113,8 @@ func main() {
         log.Fatalf("failed to listen: %v", err)
     }
     s := grpc.NewServer()
-    pb.RegisterUserServiceServer(s, &server{})
+    serv := &server{db: db}
+    pb.RegisterUserServiceServer(s, serv)
     log.Printf("server listening at %v", lis.Addr())
     if err := s.Serve(lis); err != nil {
         log.Fatalf("failed to serve: %v", err)

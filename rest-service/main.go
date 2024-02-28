@@ -3,41 +3,69 @@ package main
 import (
     "log"
     "github.com/gin-gonic/gin"
-    pb "github.com/atullal/ecommerce-backend/user-service/gen" // Replace with the correct import path
+    pb "github.com/atullal/ecommerce-backend-protobuf/user" // Replace with the correct import path
     "rest-service/handlers"
     "rest-service/services"
     "google.golang.org/grpc"
+    "fmt"
 )
 
-func main() {
-    // Initialize the REST server
-    r := gin.Default()
+type server struct {
+	RestServer *gin.Engine
+	UserServiceConnection *grpc.ClientConn
+}
 
-    // Initialize user-related components
-    initializeUserComponents(r)
-
-    // Start the server
-    if err := r.Run(":8080"); err != nil {
-        log.Fatalf("Failed to run server: %v", err)
-    }
+func (s *server) AddUserRoutes(userHandler handlers.UserHandler) {
+	// Set up routes
+    s.RestServer.POST("/user", userHandler.CreateUser)
+    s.RestServer.POST("/user/authenticate", userHandler.AuthenticateUser)
 }
 
 // initializeUserComponents sets up everything related to user handling
-func initializeUserComponents(r *gin.Engine) {
+func (s *server) InitializeUserComponents() {
     // Set up a connection to the gRPC server.
-    conn, err := grpc.Dial("user-service:50051", grpc.WithInsecure())
+    userServiceConnection, err := grpc.Dial("0.0.0.0:50051", grpc.WithInsecure())
     if err != nil {
         log.Fatalf("Failed to connect to gRPC server: %v", err)
     }
-    defer conn.Close()
+    fmt.Println("Connected to gRPC server")
 
     // Initialize the UserService and UserHandler
-    userService := services.NewUserService(pb.NewUserServiceClient(conn))
+    userService := services.NewUserService(pb.NewUserServiceClient(userServiceConnection))
     userHandler := handlers.UserHandler{UserService: userService}
 
-    // Set up routes
-    r.POST("/user", userHandler.CreateUser)
-    r.POST("/user/authenticate", userHandler.AuthenticateUser)
+    s.AddUserRoutes(userHandler)
+}
 
-    // Additional user-related routes can be added here
+
+func (s *server) InitializeRestService() {
+	// Set up routes
+	s.RestServer.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status": "UP",
+		})
+	})
+}
+
+func (s *server) Close() {
+	s.UserServiceConnection.Close()
+	s.RestServer = nil
+}
+
+func main() {
+	s := server{}
+	defer s.Close()
+    // Initialize the REST server
+    s.RestServer = gin.Default()
+    // Initialize rest components
+    s.InitializeRestService()
+
+    // Initialize user-related components
+    s.InitializeUserComponents()
+
+
+    // Start the server
+    if err := s.RestServer.Run(); err != nil {
+        log.Fatalf("Failed to run server: %v", err)
+    }
 }
