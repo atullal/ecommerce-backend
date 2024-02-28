@@ -15,7 +15,7 @@ import (
     "golang.org/x/crypto/bcrypt"
     "time"
     "math"
-    "utils/jwt/jwt.go"
+    "github.com/atullal/ecommerce-backend/utils"
 )
 
 type server struct {
