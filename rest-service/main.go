@@ -3,7 +3,7 @@ package main
 import (
     "log"
     "github.com/gin-gonic/gin"
-    pb "../user-service/gen" // Replace with the correct import path
+    pb "user-service/gen" // Replace with the correct import path
     "rest-service/handlers"
     "rest-service/services"
     "google.golang.org/grpc"

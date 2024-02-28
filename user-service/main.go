@@ -7,7 +7,7 @@ import (
     "net"
 
     "google.golang.org/grpc"
-    pb "user-service/gen"
+    pb "github.com/atullal/ecommerce-backend/user-service/gen"
     "gorm.io/driver/postgres"
     "gorm.io/gorm"
     "user-service/models"
