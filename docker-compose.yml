@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  user-service:
+    build: ./user-service
+    ports:
+      - "50051:50051"
+    environment:
+      - DSN=host=user-service-db user=${POSTGRES_USER} password=${POSTGRES_PASSWORD} dbname=${POSTGRES_DB} port=5432 sslmode=disable
+    depends_on:
+      - user-service-db
+
+  user-service-db:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - ./postgres-init:/docker-entrypoint-initdb.d/
+
+  rest-service:
+    build: ./rest-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-service
