@@ -3,7 +3,8 @@ module user-service
 go 1.22.0
 
 require (
-	github.com/atullal/ecommerce-backend-protobuf v0.0.0-20240228073450-7cb4023edb08
+	github.com/atullal/ecommerce-backend-protobuf v0.0.0-20240228104601-fa630e7a49d9
+	github.com/golang-jwt/jwt/v5 v5.2.0
 	golang.org/x/crypto v0.20.0
 	google.golang.org/grpc v1.62.0
 	gorm.io/driver/postgres v1.5.6

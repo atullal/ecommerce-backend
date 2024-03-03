@@ -15,7 +15,7 @@ import (
     "golang.org/x/crypto/bcrypt"
     "time"
     "math"
-    "github.com/atullal/ecommerce-backend/utils"
+    "user-service/utils"
 )
 
 type server struct {
@@ -59,6 +59,23 @@ func initDB() *gorm.DB {
         log.Fatalf("failed to migrate database: %v", err)
     }
     fmt.Println("Database connection successful")
+
+    // Initialize admin user if not present
+    // Check if the admin user is present
+    var user models.User
+    if err := db.Where("email = ?", "adminuser").First(&user).Error; err != nil {
+    	 fmt.Println("Admin user not found, creating")
+	     hashedPassword, err := bcrypt.GenerateFromPassword([]byte("supersafepass"), bcrypt.DefaultCost)
+	     if err != nil {
+	         fmt.Println("Error creating admin user: ", err)
+	     }
+	     user := models.User{Username: "adminuser", Email: "adminuser", Password: string(hashedPassword), Role: 3}
+	     result := db.Create(&user)
+	     if result.Error != nil {
+	         fmt.Println("Error inserting admin user: ", result.Error)
+	     }
+    }
+
     return db
 }
 
@@ -68,7 +85,7 @@ func (s *server) CreateUser(ctx context.Context, in *pb.CreateUserRequest) (*pb.
     if err != nil {
         return nil, err
     }
-    user := models.User{Username: in.Username, Email: in.Email, Password: string(hashedPassword)}
+    user := models.User{Username: in.Username, Email: in.Email, Password: string(hashedPassword), Role: 1}
     result := s.db.Create(&user)
     if result.Error != nil {
         fmt.Println("Error: ", result.Error)
@@ -76,7 +93,7 @@ func (s *server) CreateUser(ctx context.Context, in *pb.CreateUserRequest) (*pb.
     }
 
     // Generate JWT token
-    token, err := GenerateToken(user.ID)
+    token, err := jwt.GenerateToken(user.ID, user.Role)
     if err != nil {
         return nil, err
     }
@@ -96,7 +113,7 @@ func (s *server) AuthenticateUser(ctx context.Context, in *pb.AuthenticateUserRe
     }
 
     // Generate JWT token
-    token, err := GenerateToken(user.ID)
+    token, err := jwt.GenerateToken(user.ID, user.Role)
     if err != nil {
         return nil, err
     }
